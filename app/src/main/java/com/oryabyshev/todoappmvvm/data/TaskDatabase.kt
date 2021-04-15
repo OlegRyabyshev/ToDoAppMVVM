@@ -3,7 +3,9 @@ package com.oryabyshev.todoappmvvm.data
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.sqlite.db.SupportSQLiteDatabase
-import kotlinx.coroutines.GlobalScope
+import com.oryabyshev.todoappmvvm.di.ApplicationScope
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Provider
 
@@ -12,15 +14,19 @@ abstract class TaskDatabase : RoomDatabase() {
     abstract fun taskDao(): TaskDao
 
     class Callback @Inject constructor(
-        private val database: Provider<TaskDatabase>
+        private val database: Provider<TaskDatabase>,
+        @ApplicationScope private val applicationScope: CoroutineScope
     ) : RoomDatabase.Callback() {
         override fun onCreate(db: SupportSQLiteDatabase) {
             super.onCreate(db)
 
             val dao = database.get().taskDao()
 
-            GlobalScope
-
+            applicationScope.launch {
+                dao.insert(Task("Wash the dishes"))
+                dao.insert(Task("Hello", important = true))
+                dao.insert(Task("Asdsd", completed = true))
+            }
         }
     }
 }
